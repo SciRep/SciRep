@@ -2,10 +2,10 @@
 \cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
 {\colortbl;\red255\green255\blue255;}
 {\*\expandedcolortbl;;}
-\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\margl1440\margr1440\vieww30040\viewh16140\viewkind0
 \pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
 
-\f0\fs24 \cf0 from flask import Flask, request, redirect, url_for, flash, send_file\
+\f0\fs24 \cf0 from flask import Flask, request, redirect, url_for, send_file, render_template\
 import os\
 import re\
 import csv\
@@ -14,44 +14,38 @@ from werkzeug.utils import secure_filename\
 app = Flask(__name__)\
 app.config['UPLOAD_FOLDER'] = 'uploads'\
 app.config['ALLOWED_EXTENSIONS'] = \{'txt'\}\
-app.secret_key = 'supersecretkey'\
 \
-if not os.path.exists(app.config['UPLOAD_FOLDER']):\
-    os.makedirs(app.config['UPLOAD_FOLDER'])\
+if not os.path.exists('uploads'):\
+    os.makedirs('uploads')\
 \
 def allowed_file(filename):\
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']\
+    return '.' in filename and \\\
+           filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']\
 \
 def extract_t1_t2_values(file_path):\
     with open(file_path, 'r') as file:\
         data = file.read()\
 \
-    # Define regular expressions to find the required values for Native T1\
     native_t1_global_pattern = r"Native T1[\\s\\S]*?Global Myo T1 Across Slices\\s+(\\d+\\.?\\d*)"\
     native_t1_slice1_pattern = r"Regional Native T1 Slice 1[\\s\\S]*?Myo\\s+(\\d+\\.?\\d*)"\
     native_t1_slice2_pattern = r"Regional Native T1 Slice 2[\\s\\S]*?Myo\\s+(\\d+\\.?\\d*)"\
 \
-    # Define regular expressions to find the required values for CA T1 (T2)\
     ca_t1_global_pattern = r"CA T1[\\s\\S]*?Global Myo T1 Across Slices\\s+(\\d+\\.?\\d*)"\
     ca_t1_slice1_pattern = r"Regional CA T1 Slice 1[\\s\\S]*?Myo\\s+(\\d+\\.?\\d*)"\
     ca_t1_slice2_pattern = r"Regional CA T1 Slice 2[\\s\\S]*?Myo\\s+(\\d+\\.?\\d*)"\
 \
-    # Search for the patterns in the data for Native T1\
     native_t1_global = re.search(native_t1_global_pattern, data)\
     native_t1_slice1 = re.search(native_t1_slice1_pattern, data)\
     native_t1_slice2 = re.search(native_t1_slice2_pattern, data)\
 \
-    # Search for the patterns in the data for CA T1 (T2)\
     ca_t1_global = re.search(ca_t1_global_pattern, data)\
     ca_t1_slice1 = re.search(ca_t1_slice1_pattern, data)\
     ca_t1_slice2 = re.search(ca_t1_slice2_pattern, data)\
 \
-    # Extract the values if the patterns were found for Native T1\
     native_t1_global_value = native_t1_global.group(1) if native_t1_global else None\
     native_t1_slice1_value = native_t1_slice1.group(1) if native_t1_slice1 else None\
     native_t1_slice2_value = native_t1_slice2.group(1) if native_t1_slice2 else None\
 \
-    # Extract the values if the patterns were found for CA T1 (T2)\
     ca_t1_global_value = ca_t1_global.group(1) if ca_t1_global else None\
     ca_t1_slice1_value = ca_t1_slice1.group(1) if ca_t1_slice1 else None\
     ca_t1_slice2_value = ca_t1_slice2.group(1) if ca_t1_slice2 else None\
@@ -84,8 +78,24 @@ def process_reports(folder_path):\
 \
     return results\
 \
-def save_to_csv(results, output_file):\
-    with open(output_file, 'w', newline='') as csvfile:\
+@app.route('/')\
+def upload_file():\
+    return render_template('upload.html')\
+\
+@app.route('/uploader', methods=['POST'])\
+def uploader_file():\
+    if 'file' not in request.files:\
+        return redirect(request.url)\
+    files = request.files.getlist('file')\
+    for file in files:\
+        if file and allowed_file(file.filename):\
+            filename = secure_filename(file.filename)\
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))\
+\
+    results = process_reports(app.config['UPLOAD_FOLDER'])\
+\
+    csv_file_path = os.path.join(app.config['UPLOAD_FOLDER'], 'extracted_t1_t2_values.csv')\
+    with open(csv_file_path, 'w', newline='') as csvfile:\
         fieldnames = [\
             'File', \
             'Native Mean Global T1', 'Native Mean Basal T1', 'Native Mean Mid T1',\
@@ -96,39 +106,7 @@ def save_to_csv(results, output_file):\
         for result in results:\
             writer.writerow(result)\
 \
-@app.route('/')\
-def index():\
-    return '''\
-    <!doctype html>\
-    <title>Upload new File</title>\
-    <h1>Upload new File</h1>\
-    <form method=post enctype=multipart/form-data>\
-      <input type=file name=file multiple>\
-      <input type=submit value=Upload>\
-    </form>\
-    '''\
-\
-@app.route('/', methods=['POST'])\
-def upload_file():\
-    if 'file' not in request.files:\
-        flash('No file part')\
-        return redirect(request.url)\
-    files = request.files.getlist('file')\
-    if not files:\
-        flash('No selected file')\
-        return redirect(request.url)\
-\
-    for file in files:\
-        if file and allowed_file(file.filename):\
-            filename = secure_filename(file.filename)\
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))\
-\
-    # Process the uploaded files\
-    results = process_reports(app.config['UPLOAD_FOLDER'])\
-    output_csv_path = os.path.join(app.config['UPLOAD_FOLDER'], 'extracted_t1_t2_values.csv')\
-    save_to_csv(results, output_csv_path)\
-\
-    return send_file(output_csv_path, as_attachment=True)\
+    return send_file(csv_file_path, as_attachment=True)\
 \
 if __name__ == '__main__':\
     app.run(debug=True)\
