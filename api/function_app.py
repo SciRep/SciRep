@@ -9,10 +9,15 @@ import traceback
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
     logging.info('Python HTTP trigger function processed a request.')
+    logging.info(f'Request method: {req.method}')
+    logging.info(f'Request url: {req.url}')
+    logging.info(f'Request headers: {dict(req.headers)}')
+    logging.info(f'Request params: {dict(req.params)}')
 
     try:
         # Get the route from the request
         route = req.route_params.get('route')
+        logging.info(f'Route: {route}')
         
         if route == "upload":
             return handle_upload(req)
@@ -24,7 +29,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                 status_code=400
             )
     except Exception as e:
-        logging.error(f"Error processing request: {str(e)}")
+        logging.error(f"Error in main function: {str(e)}")
         logging.error(traceback.format_exc())
         return func.HttpResponse(
             json.dumps({"error": str(e), "stack_trace": traceback.format_exc()}),
@@ -65,19 +70,23 @@ def handle_upload(req: func.HttpRequest) -> func.HttpResponse:
         logging.info(f"Extracted values: {results}")
 
         # Create a temporary CSV file
-        with tempfile.NamedTemporaryFile(mode='w', newline='', delete=False) as csvfile:
+        temp_dir = tempfile.gettempdir()
+        logging.info(f"Temp directory: {temp_dir}")
+        csv_path = os.path.join(temp_dir, 'output.csv')
+        
+        with open(csv_path, 'w', newline='') as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=results[0].keys())
             writer.writeheader()
             writer.writerows(results)
         
-        logging.info(f"CSV file created: {csvfile.name}")
+        logging.info(f"CSV file created: {csv_path}")
 
         # Read the CSV file and return its content
-        with open(csvfile.name, 'r') as f:
+        with open(csv_path, 'r') as f:
             csv_content = f.read()
 
         # Clean up temporary file
-        Path(csvfile.name).unlink()
+        os.remove(csv_path)
 
         logging.info("Returning CSV content")
         return func.HttpResponse(
