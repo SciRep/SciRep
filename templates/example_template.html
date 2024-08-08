@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ title }} formats</title>
+    <title>{{ title }} Examples</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -14,32 +14,24 @@
         h1 {
             color: #0056b3;
             text-align: center;
-            margin-bottom: 0;
         }
         .container {
             display: flex;
-            justify-content: {% if formats|length > 1 %}space-between{% else %}center{% endif %};
-            flex-wrap: wrap;
-            max-width: 1500px;
+            justify-content: space-between;
+            max-width: 1200px;
             margin: 0 auto;
         }
-        .format {
+        .example {
             background-color: white;
             border-radius: 8px;
             padding: 20px;
-            width: {% if formats|length > 1 %}48%{% else %}100%{% endif %};
+            width: 48%;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-            width: calc(50% - 50px); /* Adjust width to ensure two items fit in one row */
         }
         h2 {
             color: #0056b3;
             border-bottom: 2px solid #0056b3;
             padding-bottom: 10px;
-        }
-        h4 {
-            text-align: center;
-            margin-top: 0.5em;
         }
         pre {
             white-space: pre-wrap;
@@ -48,15 +40,16 @@
     </style>
 </head>
 <body>
-    <h1>Supported Formats: {{ title }}</h1>
-    <h4>All sensitive information has been removed</h4>
+    <h1>{{ title }} Examples</h1>
     <div class="container">
-        {% for format in formats %}
-            <div class="format">
-                <h2>Format #{{ loop.index }}</h2>
-                <pre>{{ format }}</pre>
-            </div>
-        {% endfor %}
+        <div class="example">
+            <h2>Example 1</h2>
+            <pre>{{ example1 }}</pre>
+        </div>
+        <div class="example">
+            <h2>Example 2</h2>
+            <pre>{{ example2 }}</pre>
+        </div>
     </div>
 </body>
 </html>
