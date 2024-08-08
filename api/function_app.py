@@ -100,17 +100,100 @@ def process_reports(folder_path, extract_function):
         report_file.unlink()
     return results
 
-@app.route(route="upload/{extraction_type}")
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+def handle_upload(extraction_type):
+    if 'files[]' not in request.files:
+        return jsonify({"error": "No files part in the request"}), 400
+
+    files = request.files.getlist('files[]')
+    if not files or files[0].filename == '':
+        return jsonify({"error": "No selected file"}), 400
+
+    folder_path = Path('uploads')
+    folder_path.mkdir(exist_ok=True)
+
+    for file in files:
+        file.save(folder_path / file.filename)
+
+    extract_function = lambda file_path: extract_values(file_path, patterns[extraction_type])
+    results = process_reports(folder_path, extract_function)
+
+    output_path = folder_path / f'extracted_{extraction_type}_values.csv'
+
+    try:
+        with output_path.open('w', newline='') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=results[0].keys())
+            writer.writeheader()
+            writer.writerows(results)
+    except Exception as e:
+        app.logger.error(f"Error writing CSV file: {e}")
+        return jsonify({"error": "Error writing CSV file"}), 500
+
+    return send_file(output_path, as_attachment=True)
+
+# Define routes
+for extraction_type in patterns.keys():
+    app.add_url_rule(f'/upload_{extraction_type}', f'upload_{extraction_type}',
+                     lambda et=extraction_type: handle_upload(et), methods=['POST'])
+
+# Routes for format files
+@app.route('/format/<extraction_type>')
+def show_format(extraction_type):
+    title = f"{extraction_type.replace('_', ' ').title()}"
+    title = title.replace('Aha', 'AHA').replace('Sax', 'SAX').replace('Lax', 'LAX')
+    
+    # Define paths for format files
+    format1_path = Path(f'static/format_{extraction_type}_1.txt')
+    format2_path = Path(f'static/format_{extraction_type}_2.txt')
+    
+    formats = []
+    
+    # Try to read format 1
+    if format1_path.exists():
+            with open(format1_path, 'r', encoding='utf-16') as file:
+                formats.append(file.read())
+
+    
+    # Try to read format 2 if it exists
+    if format2_path.exists():
+            with open(format2_path, 'r', encoding='utf-16') as file:
+                formats.append(file.read())
+    
+    # If no formats were found, return a 404 error
+    if not formats:
+        abort(404, description="No format files found")
+    
+    return render_template('format_template.html',
+                           title=title,
+                           formats=formats)
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
+
+
+# Your existing patterns and extract_values function here
+# Make sure these are correctly defined
+
+@app.route(route="upload/{extraction_type}", methods=["POST"])
 def handle_upload(req: func.HttpRequest, extraction_type: str) -> func.HttpResponse:
     logging.info(f'Python HTTP trigger function processed a request for {extraction_type}.')
 
     try:
         # Get the uploaded file
-        file = req.files['file']
+        file = req.files.get('file')
+        if not file:
+            return func.HttpResponse(
+                "No file uploaded",
+                status_code=400
+            )
         
         # Create a temporary file to save the uploaded content
-        with tempfile.NamedTemporaryFile(delete=False) as temp_file:
-            file.save(temp_file.name)
+        with tempfile.NamedTemporaryFile(delete=False, mode='wb') as temp_file:
+            temp_file.write(file.read())
         
         # Extract values
         extract_function = lambda file_path: extract_values(file_path, patterns[extraction_type])
@@ -141,42 +224,7 @@ def handle_upload(req: func.HttpRequest, extraction_type: str) -> func.HttpRespo
         logging.error(f"Error processing request: {str(e)}")
         return func.HttpResponse(
             json.dumps({"error": str(e)}),
-            mimetype="application/json",
             status_code=400
         )
 
-@app.route(route="format/{extraction_type}")
-def show_format(req: func.HttpRequest, extraction_type: str) -> func.HttpResponse:
-    logging.info(f'Python HTTP trigger function processed a request for format {extraction_type}.')
-
-    title = f"{extraction_type.replace('_', ' ').title()}"
-    title = title.replace('Aha', 'AHA').replace('Sax', 'SAX').replace('Lax', 'LAX')
-    
-    # Define paths for format files
-    format1_path = Path(f'static/format_{extraction_type}_1.txt')
-    format2_path = Path(f'static/format_{extraction_type}_2.txt')
-    
-    formats = []
-    
-    # Try to read format 1
-    if format1_path.exists():
-        with open(format1_path, 'r', encoding='utf-16') as file:
-            formats.append(file.read())
-    
-    # Try to read format 2 if it exists
-    if format2_path.exists():
-        with open(format2_path, 'r', encoding='utf-16') as file:
-            formats.append(file.read())
-    
-    # If no formats were found, return a 404 error
-    if not formats:
-        return func.HttpResponse(
-            "No format files found",
-            status_code=404
-        )
-    
-    # Return the formats as JSON
-    return func.HttpResponse(
-        json.dumps({"title": title, "formats": formats}),
-        mimetype="application/json"
-    )
+# Other functions like show_format can be added here

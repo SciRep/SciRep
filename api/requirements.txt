@@ -1,6 +1,1 @@
-<<<<<<< HEAD
-Flask==2.0.1
-azure-functions==1.7.0
-=======
-flask
->>>>>>> ea5ae8b (Initial commit)
+azure-functions

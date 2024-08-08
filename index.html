@@ -42,15 +42,23 @@
                     data: formData,
                     processData: false,
                     contentType: false,
-                    success: function(data) {
-                        var blob = new Blob([data], {type: 'text/csv'});
-                        var link = document.createElement('a');
-                        link.href = window.URL.createObjectURL(blob);
-                        link.download = 'extracted_' + extractionType + '_values.csv';
-                        link.click();
+                    success: function(data, status, xhr) {
+                        var contentType = xhr.getResponseHeader('content-type');
+                        if (contentType && contentType.indexOf('application/json') !== -1) {
+                            // If the response is JSON, it's probably an error
+                            $('#result').text('Error: ' + JSON.parse(data).error);
+                        } else {
+                            // If it's not JSON, it's probably our CSV file
+                            var blob = new Blob([data], {type: 'text/csv'});
+                            var link = document.createElement('a');
+                            link.href = window.URL.createObjectURL(blob);
+                            link.download = 'extracted_' + extractionType + '_values.csv';
+                            link.click();
+                            $('#result').text('File downloaded successfully');
+                        }
                     },
                     error: function(xhr, status, error) {
-                        $('#result').text('Error: ' + xhr.responseText);
+                        $('#result').text('Error: ' + (xhr.responseJSON ? xhr.responseJSON.error : xhr.statusText));
                     }
                 });
             });
