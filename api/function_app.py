@@ -1,111 +1,11 @@
 import azure.functions as func
 import logging
 import json
-from pathlib import Path
 import re
 import csv
-import tempfile
-import traceback
+import io
 
-def main(req: func.HttpRequest) -> func.HttpResponse:
-    logging.info('Python HTTP trigger function processed a request.')
-    logging.info(f'Request method: {req.method}')
-    logging.info(f'Request url: {req.url}')
-    logging.info(f'Request headers: {dict(req.headers)}')
-    logging.info(f'Request params: {dict(req.params)}')
-
-    try:
-        # Get the route from the request
-        route = req.route_params.get('route')
-        logging.info(f'Route: {route}')
-        
-        if route == "upload":
-            return handle_upload(req)
-        elif route == "format":
-            return show_format(req)
-        else:
-            return func.HttpResponse(
-                "Invalid route",
-                status_code=400
-            )
-    except Exception as e:
-        logging.error(f"Error in main function: {str(e)}")
-        logging.error(traceback.format_exc())
-        return func.HttpResponse(
-            json.dumps({"error": str(e), "stack_trace": traceback.format_exc()}),
-            status_code=500,
-            mimetype="application/json"
-        )
-
-def handle_upload(req: func.HttpRequest) -> func.HttpResponse:
-    logging.info('Handle upload function processed a request.')
-    try:
-        extraction_type = req.params.get('extraction_type')
-        logging.info(f"Extraction type: {extraction_type}")
-
-        # Get the uploaded file
-        file = req.files.get('file')
-        if not file:
-            logging.warning("No file uploaded")
-            return func.HttpResponse(
-                json.dumps({"error": "No file uploaded"}),
-                status_code=400,
-                mimetype="application/json"
-            )
-        
-        logging.info(f"File received: {file.filename}")
-        
-        # Read file content
-        try:
-            file_content = file.read().decode('utf-16')
-        except UnicodeDecodeError:
-            logging.warning("Failed to decode with utf-16, trying utf-8")
-            file.seek(0)  # Reset file pointer
-            file_content = file.read().decode('utf-8')
-        
-        logging.info("File content read successfully")
-        
-        # Extract values
-        results = [{"File": file.filename, **extract_values(file_content, patterns[extraction_type])}]
-        logging.info(f"Extracted values: {results}")
-
-        # Create a temporary CSV file
-        temp_dir = tempfile.gettempdir()
-        logging.info(f"Temp directory: {temp_dir}")
-        csv_path = os.path.join(temp_dir, 'output.csv')
-        
-        with open(csv_path, 'w', newline='') as csvfile:
-            writer = csv.DictWriter(csvfile, fieldnames=results[0].keys())
-            writer.writeheader()
-            writer.writerows(results)
-        
-        logging.info(f"CSV file created: {csv_path}")
-
-        # Read the CSV file and return its content
-        with open(csv_path, 'r') as f:
-            csv_content = f.read()
-
-        # Clean up temporary file
-        os.remove(csv_path)
-
-        logging.info("Returning CSV content")
-        return func.HttpResponse(
-            csv_content,
-            mimetype="text/csv",
-            headers={
-                "Content-Disposition": f"attachment; filename=extracted_{extraction_type}_values.csv"
-            }
-        )
-    except Exception as e:
-        logging.error(f"Error in handle_upload: {str(e)}")
-        logging.error(traceback.format_exc())
-        return func.HttpResponse(
-            json.dumps({"error": str(e), "stack_trace": traceback.format_exc()}),
-            status_code=500,
-            mimetype="application/json"
-        )
-
-# ... rest of your code (show_format, patterns, extract_values) ...
+# Your patterns dictionary
 patterns = {
     'SAX_function': {
         "LV EDV": r"Clinical Results LV[\s\S]*?EDV\s+([\d.]+)\s+ml",
@@ -123,118 +23,49 @@ patterns = {
         "CO": r"Biplanar 2CV / 4CV[\s\S]*?CO\s+([\d.]+)\s+l/min",
         "HR": r"Biplanar 2CV / 4CV[\s\S]*?HR\s+([\d.]+)\s+1/min"
     },
-    'atrial_volume': {
-        "Min LA Vol": r"Min LA Vol\s+([\d.]+)\s+ml",
-        "Min LA Area": r"Min LA Area\s+([\d.]+)\s+cm ²",
-        "Phase Min LA Vol": r"Phase Min LA Vol\s+(\d+)",
-        "Max LA Vol": r"Max LA Vol\s+([\d.]+)\s+ml",
-        "Max LA Area": r"Max LA Area\s+([\d.]+)\s+cm ²",
-        "Phase Max LA Vol": r"Phase Max LA Vol\s+(\d+)",
-        "Min LA Vol/H": r"Min LA Vol/H\s+([\d.]+)\s+ml/m",
-        "Min LA Vol/BSA": r"Min LA Vol/BSA\s+([\d.]+)\s+ml/m²",
-        "Max LA Vol/H": r"Max LA Vol/H\s+([\d.]+)\s+ml/m",
-        "Max LA Vol/BSA": r"Max LA Vol/BSA\s+([\d.]+)\s+ml/m²",
-        "LA EF": r"LA EF\s+([\d.]+|\-\-)\s+%",
-        "Min RA Vol": r"Min RA Vol\s+([\d.]+)\s+ml",
-        "Min RA Area": r"Min RA Area\s+([\d.]+)\s+cm ²",
-        "Phase Min RA Vol": r"Phase Min RA Vol\s+(\d+)",
-        "Max RA Vol": r"Max RA Vol\s+([\d.]+)\s+ml",
-        "Max RA Area": r"Max RA Area\s+([\d.]+)\s+cm ²",
-        "Phase Max RA Vol": r"Phase Max RA Vol\s+(\d+)",
-        "Min RA Vol/H": r"Min RA Vol/H\s+([\d.]+)\s+ml/m",
-        "Min RA Vol/BSA": r"Min RA Vol/BSA\s+([\d.]+)\s+ml/m²",
-        "Max RA Vol/H": r"Max RA Vol/H\s+([\d.]+)\s+ml/m",
-        "Max RA Vol/BSA": r"Max RA Vol/BSA\s+([\d.]+)\s+ml/m²",
-        "RA EF": r"RA EF\s+([\d.]+|\-\-)\s+%"
-    },
-    'mapping': {
-        "Native Mean Global T1": r"Native T1[\s\S]*?Global Myo T1 Across Slices\s+(\d+\.?\d*)",
-        "Native Mean Basal T1": r"Regional Native T1 Slice 1[\s\S]*?Myo\s+(\d+\.?\d*)",
-        "Native Mean Mid T1": r"Regional Native T1 Slice 2[\s\S]*?Myo\s+(\d+\.?\d*)",
-        "CA Mean Global T2": r"CA T1[\s\S]*?Global Myo T1 Across Slices\s+(\d+\.?\d*)",
-        "CA Mean Basal T2": r"Regional CA T1 Slice 1[\s\S]*?Myo\s+(\d+\.?\d*)",
-        "CA Mean Mid T2": r"Regional CA T1 Slice 2[\s\S]*?Myo\s+(\d+\.?\d*)"
-    },
-    't1_aha_segmentation': {
-        "AHA_Segment_T1": ""
-    },
-    't2_aha_segmentation': {
-        "AHA_Segment_T2": ""
-    }
+    # Add other pattern types here
 }
 
-# Your extract_values function here (unchanged)
-def extract_values(file_content, patterns):
-    try:
-        results = {}
-        for key, pattern in patterns.items():
-            if key.startswith('AHA_Segment_'):
-                if 'T1' in key:
-                    aha_section = re.search(r'Regional Native T1 \(AHA Segmentation\)([\s\S]*?)(?=\n\n)', file_content)
-                elif 'T2' in key:
-                    aha_section = re.search(r'Regional (T2|CA T1) \(AHA [Ss]egmentation\)([\s\S]*?)(?=\n\n)', file_content)
-                
-                if aha_section:
-                    aha_data = aha_section.group(0) if 'T2' in key else aha_section.group(1)
-                    segments = re.findall(r'(\d+)\s+([\d.]+)', aha_data)
-                    results.update({f"{key}_{seg}": value for seg, value in segments})
-            else:
-                match = re.search(pattern, file_content)
-                results[key] = match.group(1) if match else None
-        
-        return results
-    except Exception as e:
-        logging.error(f"Error extracting values: {e}")
-        return {}
+def extract_values(file_content, extraction_type):
+    if extraction_type not in patterns:
+        raise ValueError(f"Unknown extraction type: {extraction_type}")
+    
+    results = {}
+    for key, pattern in patterns[extraction_type].items():
+        match = re.search(pattern, file_content)
+        results[key] = match.group(1) if match else None
+    return results
 
-
-@app.route(route="upload/{extraction_type}", methods=["POST"])
-def handle_upload(req: func.HttpRequest, extraction_type: str) -> func.HttpResponse:
-    logging.info(f'Python HTTP trigger function processed a request for {extraction_type}.')
+def main(req: func.HttpRequest) -> func.HttpResponse:
+    logging.info('Python HTTP trigger function processed a request.')
 
     try:
+        # Get the extraction type from query parameters
+        extraction_type = req.params.get('extraction_type')
+        if not extraction_type:
+            raise ValueError("extraction_type is required")
+
         # Get the uploaded file
         file = req.files.get('file')
         if not file:
-            logging.warning("No file uploaded")
-            return func.HttpResponse(
-                json.dumps({"error": "No file uploaded"}),
-                status_code=400,
-                mimetype="application/json"
-            )
-        
-        logging.info(f"File received: {file.filename}")
-        
+            raise ValueError("No file uploaded")
+
         # Read file content
-        try:
-            file_content = file.read().decode('utf-16')
-        except UnicodeDecodeError:
-            logging.warning("Failed to decode with utf-16, trying utf-8")
-            file.seek(0)  # Reset file pointer
-            file_content = file.read().decode('utf-8')
-        
-        logging.info("File content read successfully")
-        
+        file_content = file.read().decode('utf-8')  # or 'utf-16' if that's what you're using
+
         # Extract values
-        results = [{"File": file.filename, **extract_values(file_content, patterns[extraction_type])}]
-        logging.info(f"Extracted values: {results}")
+        results = extract_values(file_content, extraction_type)
 
-        # Create a temporary CSV file
-        with tempfile.NamedTemporaryFile(mode='w', newline='', delete=False) as csvfile:
-            writer = csv.DictWriter(csvfile, fieldnames=results[0].keys())
-            writer.writeheader()
-            writer.writerows(results)
+        # Create CSV
+        output = io.StringIO()
+        writer = csv.DictWriter(output, fieldnames=['Metric', 'Value'])
+        writer.writeheader()
+        for key, value in results.items():
+            writer.writerow({'Metric': key, 'Value': value})
+
+        # Prepare the response
+        csv_content = output.getvalue()
         
-        logging.info(f"CSV file created: {csvfile.name}")
-
-        # Read the CSV file and return its content
-        with open(csvfile.name, 'r') as f:
-            csv_content = f.read()
-
-        # Clean up temporary file
-        Path(csvfile.name).unlink()
-
-        logging.info("Returning CSV content")
         return func.HttpResponse(
             csv_content,
             mimetype="text/csv",
@@ -243,53 +74,37 @@ def handle_upload(req: func.HttpRequest, extraction_type: str) -> func.HttpRespo
             }
         )
     except Exception as e:
-        logging.error(f"Error processing request: {str(e)}")
-        logging.error(traceback.format_exc())
+        logging.error(f"Error: {str(e)}")
         return func.HttpResponse(
-            json.dumps({"error": str(e), "stack_trace": traceback.format_exc()}),
-            status_code=500,
+            json.dumps({"error": str(e)}),
+            status_code=400,
             mimetype="application/json"
         )
 
-@app.route(route="format/{extraction_type}", methods=["GET"])
-def show_format(req: func.HttpRequest, extraction_type: str) -> func.HttpResponse:
-    logging.info(f'Python HTTP trigger function processed a request for format {extraction_type}.')
+def format(req: func.HttpRequest) -> func.HttpResponse:
+    logging.info('Format function processed a request.')
 
-    title = f"{extraction_type.replace('_', ' ').title()}"
-    title = title.replace('Aha', 'AHA').replace('Sax', 'SAX').replace('Lax', 'LAX')
-    
-    # Define paths for format files
-    format1_path = Path(f'static/format_{extraction_type}_1.txt')
-    format2_path = Path(f'static/format_{extraction_type}_2.txt')
-    
-    formats = []
-    
-    # Try to read format 1
-    if format1_path.exists():
-        with open(format1_path, 'r', encoding='utf-16') as file:
-            formats.append(file.read())
-    else:
-        logging.warning(f"Format file not found: {format1_path}")
-    
-    # Try to read format 2 if it exists
-    if format2_path.exists():
-        with open(format2_path, 'r', encoding='utf-16') as file:
-            formats.append(file.read())
-    else:
-        logging.warning(f"Format file not found: {format2_path}")
-    
-    # If no formats were found, return a 404 error
-    if not formats:
-        logging.error("No format files found")
+    try:
+        extraction_type = req.params.get('extraction_type')
+        if not extraction_type:
+            raise ValueError("extraction_type is required")
+
+        if extraction_type not in patterns:
+            raise ValueError(f"Unknown extraction type: {extraction_type}")
+
+        format_info = {
+            "title": extraction_type.replace('_', ' ').title(),
+            "fields": list(patterns[extraction_type].keys())
+        }
+
         return func.HttpResponse(
-            json.dumps({"error": "No format files found"}),
-            status_code=404,
+            json.dumps(format_info),
             mimetype="application/json"
         )
-    
-    # Return the formats as JSON
-    logging.info(f"Returning formats for {extraction_type}")
-    return func.HttpResponse(
-        json.dumps({"title": title, "formats": formats}),
-        mimetype="application/json"
-    )
+    except Exception as e:
+        logging.error(f"Error: {str(e)}")
+        return func.HttpResponse(
+            json.dumps({"error": str(e)}),
+            status_code=400,
+            mimetype="application/json"
+        )
