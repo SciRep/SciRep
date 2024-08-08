@@ -1,10 +1,12 @@
-from flask import Flask, request, jsonify, send_file, render_template, send_from_directory
+import azure.functions as func
+import logging
+import json
 from pathlib import Path
 import re
 import csv
+import tempfile
 
-app = Flask(__name__)
-
+app = func.FunctionApp()
 
 def extract_values(file_path, patterns):
     try:
@@ -98,48 +100,55 @@ def process_reports(folder_path, extract_function):
         report_file.unlink()
     return results
 
-@app.route('/')
-def index():
-    return render_template('index.html')
-
-def handle_upload(extraction_type):
-    if 'files[]' not in request.files:
-        return jsonify({"error": "No files part in the request"}), 400
-
-    files = request.files.getlist('files[]')
-    if not files or files[0].filename == '':
-        return jsonify({"error": "No selected file"}), 400
-
-    folder_path = Path('uploads')
-    folder_path.mkdir(exist_ok=True)
-
-    for file in files:
-        file.save(folder_path / file.filename)
-
-    extract_function = lambda file_path: extract_values(file_path, patterns[extraction_type])
-    results = process_reports(folder_path, extract_function)
-
-    output_path = folder_path / f'extracted_{extraction_type}_values.csv'
+@app.route(route="upload/{extraction_type}")
+def handle_upload(req: func.HttpRequest, extraction_type: str) -> func.HttpResponse:
+    logging.info(f'Python HTTP trigger function processed a request for {extraction_type}.')
 
     try:
-        with output_path.open('w', newline='') as csvfile:
+        # Get the uploaded file
+        file = req.files['file']
+        
+        # Create a temporary file to save the uploaded content
+        with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+            file.save(temp_file.name)
+        
+        # Extract values
+        extract_function = lambda file_path: extract_values(file_path, patterns[extraction_type])
+        results = [{"File": file.filename, **extract_function(temp_file.name)}]
+
+        # Create a temporary CSV file
+        with tempfile.NamedTemporaryFile(mode='w', newline='', delete=False) as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=results[0].keys())
             writer.writeheader()
             writer.writerows(results)
+        
+        # Read the CSV file and return its content
+        with open(csvfile.name, 'r') as f:
+            csv_content = f.read()
+
+        # Clean up temporary files
+        Path(temp_file.name).unlink()
+        Path(csvfile.name).unlink()
+
+        return func.HttpResponse(
+            csv_content,
+            mimetype="text/csv",
+            headers={
+                "Content-Disposition": f"attachment; filename=extracted_{extraction_type}_values.csv"
+            }
+        )
     except Exception as e:
-        app.logger.error(f"Error writing CSV file: {e}")
-        return jsonify({"error": "Error writing CSV file"}), 500
+        logging.error(f"Error processing request: {str(e)}")
+        return func.HttpResponse(
+            json.dumps({"error": str(e)}),
+            mimetype="application/json",
+            status_code=400
+        )
 
-    return send_file(output_path, as_attachment=True)
+@app.route(route="format/{extraction_type}")
+def show_format(req: func.HttpRequest, extraction_type: str) -> func.HttpResponse:
+    logging.info(f'Python HTTP trigger function processed a request for format {extraction_type}.')
 
-# Define routes
-for extraction_type in patterns.keys():
-    app.add_url_rule(f'/upload_{extraction_type}', f'upload_{extraction_type}',
-                     lambda et=extraction_type: handle_upload(et), methods=['POST'])
-
-# Routes for format files
-@app.route('/format/<extraction_type>')
-def show_format(extraction_type):
     title = f"{extraction_type.replace('_', ' ').title()}"
     title = title.replace('Aha', 'AHA').replace('Sax', 'SAX').replace('Lax', 'LAX')
     
@@ -151,22 +160,23 @@ def show_format(extraction_type):
     
     # Try to read format 1
     if format1_path.exists():
-            with open(format1_path, 'r', encoding='utf-16') as file:
-                formats.append(file.read())
-
+        with open(format1_path, 'r', encoding='utf-16') as file:
+            formats.append(file.read())
     
     # Try to read format 2 if it exists
     if format2_path.exists():
-            with open(format2_path, 'r', encoding='utf-16') as file:
-                formats.append(file.read())
+        with open(format2_path, 'r', encoding='utf-16') as file:
+            formats.append(file.read())
     
     # If no formats were found, return a 404 error
     if not formats:
-        abort(404, description="No format files found")
+        return func.HttpResponse(
+            "No format files found",
+            status_code=404
+        )
     
-    return render_template('format_template.html',
-                           title=title,
-                           formats=formats)
-
-if __name__ == '__main__':
-    app.run(debug=True)
+    # Return the formats as JSON
+    return func.HttpResponse(
+        json.dumps({"title": title, "formats": formats}),
+        mimetype="application/json"
+    )
