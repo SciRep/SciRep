@@ -4,63 +4,92 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CMR Report Extractor</title>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        button { margin: 10px 0; }
+        #result { margin-top: 20px; }
+    </style>
 </head>
 <body>
     <h1>CMR Report Extractor</h1>
-    
+
     <h2>Upload Files</h2>
-    <form id="uploadForm">
-        <select id="extractionType">
-            <option value="SAX_function">SAX Function</option>
-            <option value="LAX_function">LAX Function</option>
-            <option value="atrial_volume">Atrial Volume</option>
-            <option value="mapping">Mapping</option>
-            <option value="t1_aha_segmentation">T1 AHA Segmentation</option>
-            <option value="t2_aha_segmentation">T2 AHA Segmentation</option>
-        </select>
-        <input type="file" id="fileInput">
-        <button type="submit">Upload and Extract</button>
-    </form>
+    <select id="extractionType">
+        <option value="SAX_function">SAX Function</option>
+        <option value="LAX_function">LAX Function</option>
+        <option value="atrial_volume">Atrial Volume</option>
+        <option value="mapping">Mapping</option>
+        <option value="t1_aha_segmentation">T1 AHA Segmentation</option>
+        <option value="t2_aha_segmentation">T2 AHA Segmentation</option>
+    </select>
+    <input type="file" id="fileInput">
+    <button onclick="uploadAndExtract()">Upload and Extract</button>
 
     <div id="result"></div>
 
     <script>
-        $(document).ready(function() {
-            $('#uploadForm').on('submit', function(e) {
-                e.preventDefault();
-                var formData = new FormData();
-                var file = $('#fileInput')[0].files[0];
-                formData.append('file', file);
-                var extractionType = $('#extractionType').val();
-                
-                $.ajax({
-                    url: '/api/upload/' + extractionType,
-                    type: 'POST',
-                    data: formData,
-                    processData: false,
-                    contentType: false,
-                    success: function(data, status, xhr) {
-                        var contentType = xhr.getResponseHeader('content-type');
-                        if (contentType && contentType.indexOf('application/json') !== -1) {
-                            // If the response is JSON, it's probably an error
-                            $('#result').text('Error: ' + JSON.parse(data).error);
-                        } else {
-                            // If it's not JSON, it's probably our CSV file
-                            var blob = new Blob([data], {type: 'text/csv'});
-                            var link = document.createElement('a');
-                            link.href = window.URL.createObjectURL(blob);
-                            link.download = 'extracted_' + extractionType + '_values.csv';
-                            link.click();
-                            $('#result').text('File downloaded successfully');
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        $('#result').text('Error: ' + (xhr.responseJSON ? xhr.responseJSON.error : xhr.statusText));
-                    }
+        async function uploadAndExtract() {
+            const fileInput = document.getElementById('fileInput');
+            const extractionType = document.getElementById('extractionType').value;
+            const resultDiv = document.getElementById('result');
+
+            if (!fileInput.files[0]) {
+                resultDiv.textContent = 'Please select a file first.';
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            try {
+                const response = await fetch(`/api/upload/${extractionType}`, {
+                    method: 'POST',
+                    body: formData
                 });
-            });
-        });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const blob = await response.blob();
+                const downloadUrl = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = downloadUrl;
+                a.download = `extracted_${extractionType}_values.csv`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(downloadUrl);
+                a.remove();
+
+                resultDiv.textContent = 'File processed successfully. Download started.';
+            } catch (error) {
+                console.error('Error:', error);
+                resultDiv.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        async function showFormat() {
+            const extractionType = document.getElementById('extractionType').value;
+            const resultDiv = document.getElementById('result');
+
+            try {
+                const response = await fetch(`/api/format/${extractionType}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                
+                let formatHtml = `<h3>${data.title}</h3>`;
+                data.formats.forEach((format, index) => {
+                    formatHtml += `<h4>Format ${index + 1}</h4><pre>${format}</pre>`;
+                });
+                
+                resultDiv.innerHTML = formatHtml;
+            } catch (error) {
+                console.error('Error:', error);
+                resultDiv.textContent = `Error: ${error.message}`;
+            }
+        }
     </script>
 </body>
 </html>

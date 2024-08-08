@@ -1,15 +1,14 @@
 {
   "routes": [
     {
-      "route": "/api/*",
-      "serve": "/api/function_app"
+      "route": "/api/upload/{extraction_type}",
+      "methods": ["POST"],
+      "function": "main"
     },
     {
-      "route": "/*",
-      "serve": "/index.html"
+      "route": "/api/format/{extraction_type}",
+      "methods": ["GET"],
+      "function": "main"
     }
-  ],
-  "navigationFallback": {
-    "rewrite": "/index.html"
-  }
+  ]
 }

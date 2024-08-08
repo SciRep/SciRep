@@ -5,10 +5,11 @@ from pathlib import Path
 import re
 import csv
 import tempfile
+import traceback
 
 app = func.FunctionApp()
 
-# Your patterns dictionary here (copy from your Flask app)
+# Your patterns dictionary here (unchanged)
 patterns = {
     'SAX_function': {
         "LV EDV": r"Clinical Results LV[\s\S]*?EDV\s+([\d.]+)\s+ml",
@@ -66,6 +67,7 @@ patterns = {
     }
 }
 
+# Your extract_values function here (unchanged)
 def extract_values(file_content, patterns):
     try:
         results = {}
@@ -89,6 +91,7 @@ def extract_values(file_content, patterns):
         logging.error(f"Error extracting values: {e}")
         return {}
 
+
 @app.route(route="upload/{extraction_type}", methods=["POST"])
 def handle_upload(req: func.HttpRequest, extraction_type: str) -> func.HttpResponse:
     logging.info(f'Python HTTP trigger function processed a request for {extraction_type}.')
@@ -97,16 +100,28 @@ def handle_upload(req: func.HttpRequest, extraction_type: str) -> func.HttpRespo
         # Get the uploaded file
         file = req.files.get('file')
         if not file:
+            logging.warning("No file uploaded")
             return func.HttpResponse(
-                "No file uploaded",
-                status_code=400
+                json.dumps({"error": "No file uploaded"}),
+                status_code=400,
+                mimetype="application/json"
             )
         
+        logging.info(f"File received: {file.filename}")
+        
         # Read file content
-        file_content = file.read().decode('utf-16')
+        try:
+            file_content = file.read().decode('utf-16')
+        except UnicodeDecodeError:
+            logging.warning("Failed to decode with utf-16, trying utf-8")
+            file.seek(0)  # Reset file pointer
+            file_content = file.read().decode('utf-8')
+        
+        logging.info("File content read successfully")
         
         # Extract values
         results = [{"File": file.filename, **extract_values(file_content, patterns[extraction_type])}]
+        logging.info(f"Extracted values: {results}")
 
         # Create a temporary CSV file
         with tempfile.NamedTemporaryFile(mode='w', newline='', delete=False) as csvfile:
@@ -114,6 +129,8 @@ def handle_upload(req: func.HttpRequest, extraction_type: str) -> func.HttpRespo
             writer.writeheader()
             writer.writerows(results)
         
+        logging.info(f"CSV file created: {csvfile.name}")
+
         # Read the CSV file and return its content
         with open(csvfile.name, 'r') as f:
             csv_content = f.read()
@@ -121,6 +138,7 @@ def handle_upload(req: func.HttpRequest, extraction_type: str) -> func.HttpRespo
         # Clean up temporary file
         Path(csvfile.name).unlink()
 
+        logging.info("Returning CSV content")
         return func.HttpResponse(
             csv_content,
             mimetype="text/csv",
@@ -130,9 +148,11 @@ def handle_upload(req: func.HttpRequest, extraction_type: str) -> func.HttpRespo
         )
     except Exception as e:
         logging.error(f"Error processing request: {str(e)}")
+        logging.error(traceback.format_exc())
         return func.HttpResponse(
-            json.dumps({"error": str(e)}),
-            status_code=400
+            json.dumps({"error": str(e), "stack_trace": traceback.format_exc()}),
+            status_code=500,
+            mimetype="application/json"
         )
 
 @app.route(route="format/{extraction_type}", methods=["GET"])
@@ -152,20 +172,27 @@ def show_format(req: func.HttpRequest, extraction_type: str) -> func.HttpRespons
     if format1_path.exists():
         with open(format1_path, 'r', encoding='utf-16') as file:
             formats.append(file.read())
+    else:
+        logging.warning(f"Format file not found: {format1_path}")
     
     # Try to read format 2 if it exists
     if format2_path.exists():
         with open(format2_path, 'r', encoding='utf-16') as file:
             formats.append(file.read())
+    else:
+        logging.warning(f"Format file not found: {format2_path}")
     
     # If no formats were found, return a 404 error
     if not formats:
+        logging.error("No format files found")
         return func.HttpResponse(
-            "No format files found",
-            status_code=404
+            json.dumps({"error": "No format files found"}),
+            status_code=404,
+            mimetype="application/json"
         )
     
     # Return the formats as JSON
+    logging.info(f"Returning formats for {extraction_type}")
     return func.HttpResponse(
         json.dumps({"title": title, "formats": formats}),
         mimetype="application/json"
