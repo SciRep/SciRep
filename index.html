@@ -19,7 +19,7 @@
             <option value="t1_aha_segmentation">T1 AHA Segmentation</option>
             <option value="t2_aha_segmentation">T2 AHA Segmentation</option>
         </select>
-        <input type="file" id="fileInput" multiple>
+        <input type="file" id="fileInput">
         <button type="submit">Upload and Extract</button>
     </form>
 
@@ -30,10 +30,8 @@
             $('#uploadForm').on('submit', function(e) {
                 e.preventDefault();
                 var formData = new FormData();
-                var files = $('#fileInput')[0].files;
-                for (var i = 0; i < files.length; i++) {
-                    formData.append('file', files[i]);
-                }
+                var file = $('#fileInput')[0].files[0];
+                formData.append('file', file);
                 var extractionType = $('#extractionType').val();
                 
                 $.ajax({

@@ -24,4 +24,5 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: 'upload'
           app_location: '/' # Location of your application source code
+          api_loaction: 'api'
           output_location: '/' # Built application files location
