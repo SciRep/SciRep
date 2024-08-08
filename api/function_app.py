@@ -9,63 +9,7 @@ import traceback
 
 app = func.FunctionApp()
 
-# Your patterns dictionary here (unchanged)
-patterns = {
-    'SAX_function': {
-        "LV EDV": r"Clinical Results LV[\s\S]*?EDV\s+([\d.]+)\s+ml",
-        "LV ESV": r"Clinical Results LV[\s\S]*?ESV\s+([\d.]+)\s+ml",
-        "LV EF": r"Clinical Results LV[\s\S]*?EF\s+([\d.]+)\s+%",
-        "RV EDV": r"Clinical Results RV[\s\S]*?EDV\s+([\d.]+)\s+ml",
-        "RV ESV": r"Clinical Results RV[\s\S]*?ESV\s+([\d.]+)\s+ml",
-        "RV EF": r"Clinical Results RV[\s\S]*?EF\s+([\d.]+)\s+%"
-    },
-    'LAX_function': {
-        "LV EDV": r"Biplanar 2CV / 4CV[\s\S]*?EDV\s+([\d.]+)\s+ml",
-        "LV ESV": r"Biplanar 2CV / 4CV[\s\S]*?ESV\s+([\d.]+)\s+ml",
-        "LV SV": r"Biplanar 2CV / 4CV[\s\S]*?SV\s+([\d.]+)\s+ml",
-        "LV EF": r"Biplanar 2CV / 4CV[\s\S]*?EF\s+([\d.]+)\s+%",
-        "CO": r"Biplanar 2CV / 4CV[\s\S]*?CO\s+([\d.]+)\s+l/min",
-        "HR": r"Biplanar 2CV / 4CV[\s\S]*?HR\s+([\d.]+)\s+1/min"
-    },
-    'atrial_volume': {
-        "Min LA Vol": r"Min LA Vol\s+([\d.]+)\s+ml",
-        "Min LA Area": r"Min LA Area\s+([\d.]+)\s+cm ²",
-        "Phase Min LA Vol": r"Phase Min LA Vol\s+(\d+)",
-        "Max LA Vol": r"Max LA Vol\s+([\d.]+)\s+ml",
-        "Max LA Area": r"Max LA Area\s+([\d.]+)\s+cm ²",
-        "Phase Max LA Vol": r"Phase Max LA Vol\s+(\d+)",
-        "Min LA Vol/H": r"Min LA Vol/H\s+([\d.]+)\s+ml/m",
-        "Min LA Vol/BSA": r"Min LA Vol/BSA\s+([\d.]+)\s+ml/m²",
-        "Max LA Vol/H": r"Max LA Vol/H\s+([\d.]+)\s+ml/m",
-        "Max LA Vol/BSA": r"Max LA Vol/BSA\s+([\d.]+)\s+ml/m²",
-        "LA EF": r"LA EF\s+([\d.]+|\-\-)\s+%",
-        "Min RA Vol": r"Min RA Vol\s+([\d.]+)\s+ml",
-        "Min RA Area": r"Min RA Area\s+([\d.]+)\s+cm ²",
-        "Phase Min RA Vol": r"Phase Min RA Vol\s+(\d+)",
-        "Max RA Vol": r"Max RA Vol\s+([\d.]+)\s+ml",
-        "Max RA Area": r"Max RA Area\s+([\d.]+)\s+cm ²",
-        "Phase Max RA Vol": r"Phase Max RA Vol\s+(\d+)",
-        "Min RA Vol/H": r"Min RA Vol/H\s+([\d.]+)\s+ml/m",
-        "Min RA Vol/BSA": r"Min RA Vol/BSA\s+([\d.]+)\s+ml/m²",
-        "Max RA Vol/H": r"Max RA Vol/H\s+([\d.]+)\s+ml/m",
-        "Max RA Vol/BSA": r"Max RA Vol/BSA\s+([\d.]+)\s+ml/m²",
-        "RA EF": r"RA EF\s+([\d.]+|\-\-)\s+%"
-    },
-    'mapping': {
-        "Native Mean Global T1": r"Native T1[\s\S]*?Global Myo T1 Across Slices\s+(\d+\.?\d*)",
-        "Native Mean Basal T1": r"Regional Native T1 Slice 1[\s\S]*?Myo\s+(\d+\.?\d*)",
-        "Native Mean Mid T1": r"Regional Native T1 Slice 2[\s\S]*?Myo\s+(\d+\.?\d*)",
-        "CA Mean Global T2": r"CA T1[\s\S]*?Global Myo T1 Across Slices\s+(\d+\.?\d*)",
-        "CA Mean Basal T2": r"Regional CA T1 Slice 1[\s\S]*?Myo\s+(\d+\.?\d*)",
-        "CA Mean Mid T2": r"Regional CA T1 Slice 2[\s\S]*?Myo\s+(\d+\.?\d*)"
-    },
-    't1_aha_segmentation': {
-        "AHA_Segment_T1": ""
-    },
-    't2_aha_segmentation': {
-        "AHA_Segment_T2": ""
-    }
-}
+
 
 # Your extract_values function here (unchanged)
 def extract_values(file_content, patterns):
