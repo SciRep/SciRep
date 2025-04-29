@@ -1,0 +1,16 @@
+{
+  "name": "scirep-genie",
+  "version": "1.0.0",
+  "description": "Cardiology Research Tool",
+  "main": "index.js",
+  "scripts": {
+    "build": "python build_site.py",
+    "dev": "netlify dev"
+  },
+  "dependencies": {
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "netlify-cli": "^15.0.0"
+  }
+}

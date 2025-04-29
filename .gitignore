@@ -1,0 +1,40 @@
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+.env
+.venv
+venv/
+ENV/
+uploads/*.csv
+
+# Build directory
+_site/
+
+# Node modules
+node_modules/
+
+# MacOS files
+.DS_Store
+
+# Netlify local development
+.netlify/
+
+# Local Netlify folder
+.netlify

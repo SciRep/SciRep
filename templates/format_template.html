@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} formats</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        h1 {
+            color: #0056b3;
+            text-align: center;
+            margin-bottom: 0;
+        }
+        .container {
+            display: flex;
+            justify-content: {% if formats|length > 1 %}space-between{% else %}center{% endif %};
+            flex-wrap: wrap;
+            max-width: 1500px;
+            margin: 0 auto;
+        }
+        .format {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            width: {% if formats|length > 1 %}48%{% else %}100%{% endif %};
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            width: calc(50% - 50px); /* Adjust width to ensure two items fit in one row */
+        }
+        h2 {
+            color: #0056b3;
+            border-bottom: 2px solid #0056b3;
+            padding-bottom: 10px;
+        }
+        h4 {
+            text-align: center;
+            margin-top: 0.5em;
+        }
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+<body>
+    <h1>Supported Formats: {{ title }}</h1>
+    <h4>All sensitive information has been removed</h4>
+    <div class="container">
+        {% for format in formats %}
+            <div class="format">
+                <h2>Format #{{ loop.index }}</h2>
+                <pre>{{ format }}</pre>
+            </div>
+        {% endfor %}
+    </div>
+</body>
+</html>
