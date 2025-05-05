@@ -3,60 +3,311 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ title }} formats</title>
+    <title>{{ title }} - SciRep Format Details</title>
+    <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --navy: #102A43;
+            --red: #E53E3E;
+            --red-light: #FC8181;
+            --navy-light: #334E68;
+            --navy-lighter: #486581;
+            --navy-bg: #F0F4F8;
+            --white: #FFFFFF;
+            --gray-light: #F0F4F8;
+            --gray: #D9E2EC;
+            --shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+            --shadow-lg: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+        }
+        
+        * {margin: 0; padding: 0; box-sizing: border-box;}
+        
         body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f0f0f0;
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--navy-bg);
+            color: var(--navy);
+            line-height: 1.6;
         }
-        h1 {
-            color: #0056b3;
-            text-align: center;
-            margin-bottom: 0;
-        }
+        
         .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        header {
+            background-color: var(--white);
+            box-shadow: var(--shadow);
+            padding: 20px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .logo-text {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 24px;
+            color: var(--navy);
+        }
+        
+        .logo-text span {color: var(--red);}
+        
+        .back-button {
+            text-decoration: none;
+            color: var(--navy);
+            font-weight: 500;
             display: flex;
-            justify-content: {% if formats|length > 1 %}space-between{% else %}center{% endif %};
-            flex-wrap: wrap;
-            max-width: 1500px;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        
+        .back-button:hover {
+            color: var(--red);
+            transform: translateX(-3px);
+        }
+        
+        .arrow-left {
+            margin-right: 8px;
+            font-size: 20px;
+        }
+        
+        .header-flex {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .page-title {
+            background: linear-gradient(135deg, var(--navy) 0%, var(--navy-lighter) 100%);
+            color: var(--white);
+            padding: 40px 0;
+            margin-bottom: 40px;
+            border-radius: 0 0 10px 10px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .page-title h1 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .page-title p {
+            font-size: 16px;
+            opacity: 0.9;
+            max-width: 700px;
             margin: 0 auto;
         }
-        .format {
-            background-color: white;
-            border-radius: 8px;
+        
+        .format-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 30px;
+            margin-bottom: 60px;
+            max-width: 1100px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        /* Single format styles - centered and wider */
+        .single-format {
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        /* Two formats styles - side by side */
+        .dual-format {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .format-card {
+            background-color: var(--white);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+        }
+        
+        .format-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .format-header {
+            background-color: var(--navy-light);
+            color: var(--white);
+            padding: 15px 20px;
+            font-family: 'Montserrat', sans-serif;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .format-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100px;
+            height: 100%;
+            background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.1) 100%);
+            transform: skewX(-30deg) translateX(30px);
+        }
+        
+        .format-header h2 {
+            font-size: 20px;
+            font-weight: 600;
+            margin: 0;
+            border: none;
+            padding: 0;
+            display: flex;
+            align-items: center;
+        }
+        
+        .format-number {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            background-color: var(--red);
+            color: var(--white);
+            border-radius: 50%;
+            margin-right: 15px;
+            font-weight: 700;
+            font-size: 16px;
+        }
+        
+        .format-content {
             padding: 20px;
-            width: {% if formats|length > 1 %}48%{% else %}100%{% endif %};
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-            width: calc(50% - 50px); /* Adjust width to ensure two items fit in one row */
         }
-        h2 {
-            color: #0056b3;
-            border-bottom: 2px solid #0056b3;
-            padding-bottom: 10px;
-        }
-        h4 {
-            text-align: center;
-            margin-top: 0.5em;
-        }
-        pre {
+        
+        .format-content pre {
             white-space: pre-wrap;
             word-wrap: break-word;
+            font-family: 'Roboto Mono', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            padding: 15px;
+            background-color: var(--navy-bg);
+            border-radius: 6px;
+        }
+        
+        footer {
+            background-color: var(--navy);
+            color: var(--white);
+            padding: 30px 0;
+            border-radius: 10px 10px 0 0;
+        }
+        
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .footer-logo {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 20px;
+        }
+        
+        .footer-logo span {
+            color: var(--red);
+        }
+        
+        .footer-credits {
+            font-size: 14px;
+            text-align: center;
+            color: var(--gray);
+            margin-top: 20px;
+        }
+        
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .format-card {
+            animation: fadeIn 0.5s ease forwards;
+            opacity: 0;
+        }
+        
+        .format-card:nth-child(1) { animation-delay: 0.1s; }
+        .format-card:nth-child(2) { animation-delay: 0.2s; }
+        .format-card:nth-child(3) { animation-delay: 0.3s; }
+        .format-card:nth-child(4) { animation-delay: 0.4s; }
+        .format-card:nth-child(5) { animation-delay: 0.5s; }
+        
+        /* Removed scrollbar styling since content is not scrollable anymore */
+        
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .format-grid,
+            .dual-format {
+                grid-template-columns: 1fr;
+            }
+            
+            .footer-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .footer-logo {
+                margin-bottom: 15px;
+            }
         }
     </style>
 </head>
 <body>
-    <h1>Supported Formats: {{ title }}</h1>
-    <h4>All sensitive information has been removed</h4>
+    <header>
+        <div class="container header-flex">
+            <div class="logo-text">Sci<span>Rep</span> - Cardiac MRI Extraction Tool</div>
+            <a href="/" class="back-button">
+                <span class="arrow-left">←</span> Back to Home
+            </a>
+        </div>
+    </header>
+    
+    <section class="page-title">
+        <div class="container">
+            <h1>{{ title }} Format Details</h1>
+            <p>Review the supported data formats for extraction. All sensitive information has been removed.</p>
+        </div>
+    </section>
+    
     <div class="container">
-        {% for format in formats %}
-            <div class="format">
-                <h2>Format #{{ loop.index }}</h2>
-                <pre>{{ format }}</pre>
-            </div>
-        {% endfor %}
+        <div class="format-grid {% if formats|length == 1 %}single-format{% elif formats|length == 2 %}dual-format{% endif %}">
+            {% for format in formats %}
+                <div class="format-card">
+                    <div class="format-header">
+                        <h2><div class="format-number">{{ loop.index }}</div> Format #{{ loop.index }}</h2>
+                    </div>
+                    <div class="format-content">
+                        <pre>{{ format }}</pre>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
     </div>
+    
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">Sci<span>Rep</span></div>
+                <div>
+                    <a href="#" style="color: white; margin-left: 20px; text-decoration: none;">Privacy</a>
+                    <a href="#" style="color: white; margin-left: 20px; text-decoration: none;">Terms</a>
+                    <a href="#" style="color: white; margin-left: 20px; text-decoration: none;">Contact</a>
+                </div>
+            </div>
+            <div class="footer-credits">Made with ❤️ by Kian S. + Claude 3.7</div>
+        </div>
+    </footer>
 </body>
 </html>

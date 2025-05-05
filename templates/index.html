@@ -3,295 +3,555 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SciRep Genie - Cardiology Research Tool</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <title>SciRep - Cardiac MRI Extraction Tool</title>
+    <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
-    :root {
-        --primary-color: #0056b3;
-        --secondary-color: #f8f9fa;
-        --accent-color: #17a2b8;
-        --text-color: #333;
-        --light-text-color: #6c757d;
-    }
-    body {
-        font-family: 'Roboto', Arial, sans-serif;
-        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        min-height: 100vh;
-        margin: 0;
-        padding: 20px;
-        box-sizing: border-box;
-    }
-    .page-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        max-width: 800px;
-        width: 100%;
-    }
-    .container, .extraction-box {
-        background: white;
-        padding: 30px;
-        border-radius: 15px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        margin-bottom: 30px;
-        width: 100%;
-    }
-    .container {
-        display: flex;
-        align-items: flex-start;
-    }
-    .logo-container {
-        flex: 0 0 auto;
-        margin-right: 30px;
-    }
-    .instructions-container {
-        flex: 1 1 auto;
-        text-align: left;
-    }
-    h2 {
-        color: var(--primary-color);
-        font-size: 1.8em;
-        margin-bottom: 15px;
-    }
-    h3 {
-        color: var(--primary-color);
-        #font-size: 1.4em;
-        #margin-bottom: 1px;
-        #text-align: center;
-    }
-    
-    h4 {
-        color: var(--primary-color);
-        font-size: 0.8em;
-        margin-top: 0;
-        #text-align: center;
-    }
-    h5 {
-        color: var(--primary-color);
-        font-size: 1.17em;
-        margin-bottom: 1px;
-        margin-top: 1em;
-        margin-bottom: 1px;
-    }
-    h6 {
-        color: red;
-        font-size: 1em;
-        margin-top: 0;
-        margin-bottom: 0;
-        text-align: center;
-    }
-    input[type="file"] {
-        border: 1px solid #ddd;
-        padding: 10px;
-        border-radius: 5px;
-        width: calc(100% - 22px);
-        margin-bottom: 15px;
-    }
-    input[type="submit"] {
-        background: var(--primary-color);
-        border: none;
-        padding: 12px 25px;
-        border-radius: 5px;
-        color: white;
-        cursor: pointer;
-        font-size: 16px;
-        transition: background-color 0.3s ease;
-        width: 100%;
-        margin-bottom: 15px;
-    }
-    input[type="submit"]:hover {
-        background: var(--accent-color);
-    }
-    .genie-img {
-        width: 160px;
-        height: auto;
-    }
-    .step {
-        margin-bottom: 15px;
-        line-height: 1.6;
-    }
-    .step-header {
-        font-weight: bold;
-        color: var(--primary-color);
-    }
-    .made-with-love {
-        font-size: 14px;
-        color: var(--light-text-color);
-        margin-top: 20px;
-        text-align: center;
-    }
-
-    .aha-segmentation-container {
-        display: flex;
-        justify-content: space-between;
-    }
-
-    .aha-segmentation-half {
-        width: 48%;
-    }
-
-    .aha-segmentation-half h5 {
-        margin-top: 1em;
-    }
-
-    @media (max-width: 768px) {
-        .aha-segmentation-container {
-        flex-direction: column;
-    }
-    .aha-segmentation-half {
-        width: 100%;
-        margin-bottom: 30px;
-    }
-    .info-icon {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 25px;
-        height: 25px;
-        margin-left: 5px;
-        vertical-align: middle;
-        color: var(--primary-color);
-        transition: color 0.3s ease;
-    }
-
-    .info-icon:hover {
-        color: var(--accent-color);
-    }
-
-    .info-icon svg {
-        width: 100%;
-        height: 100%;
-    }
+        :root {
+            --navy: #102A43;
+            --red: #E53E3E;
+            --red-light: #FC8181;
+            --navy-light: #334E68;
+            --navy-lighter: #486581;
+            --navy-bg: #F0F4F8;
+            --white: #FFFFFF;
+            --gray-light: #F0F4F8;
+            --gray: #D9E2EC;
+            --shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+            --shadow-lg: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+        }
+        
+        * {margin: 0; padding: 0; box-sizing: border-box;}
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--navy-bg);
+            color: var(--navy);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .flex {display: flex;}
+        .items-center {align-items: center;}
+        .justify-between {justify-content: space-between;}
+        .flex-col {flex-direction: column;}
+        .text-center {text-align: center;}
+        
+        header {
+            background-color: var(--white);
+            box-shadow: var(--shadow);
+            padding: 20px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .logo-text {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 24px;
+            color: var(--navy);
+        }
+        
+        .logo-text span {color: var(--red);}
+        
+        nav ul {display: flex; list-style-type: none;}
+        nav ul li {margin-left: 30px;}
+        
+        nav a {
+            text-decoration: none;
+            color: var(--navy);
+            font-weight: 500;
+            font-size: 16px;
+            transition: color 0.3s ease;
+        }
+        
+        nav a:hover {color: var(--red);}
+        
+        .hero {
+            background: linear-gradient(135deg, var(--navy) 0%, var(--navy-lighter) 100%);
+            color: var(--white);
+            padding: 60px 0;
+            margin-bottom: 40px;
+            border-radius: 0 0 10px 10px;
+        }
+        
+        .hero-text {max-width: 600px;}
+        
+        .hero h1 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 42px;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+        
+        .hero p {
+            font-size: 18px;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+        
+        .hero-image {
+            width: 360px;
+            height: auto;
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0% {transform: translateY(0px);}
+            50% {transform: translateY(-15px);}
+            100% {transform: translateY(0px);}
+        }
+        
+        .btn {
+            display: inline-block;
+            background-color: var(--red);
+            color: var(--white);
+            padding: 12px 24px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            box-shadow: 0 4px 6px rgba(229, 62, 62, 0.25);
+        }
+        
+        .btn:hover {
+            background-color: var(--red-light);
+            transform: translateY(-2px);
+            box-shadow: 0 7px 14px rgba(229, 62, 62, 0.3);
+        }
+        
+        .btn-outline {
+            background-color: transparent;
+            border: 2px solid var(--red);
+            color: var(--red);
+        }
+        
+        .btn-outline:hover {
+            background-color: var(--red);
+            color: var(--white);
+        }
+        
+        .card {
+            background-color: var(--white);
+            border-radius: 10px;
+            padding: 40px;
+            margin-bottom: 40px;
+            box-shadow: var(--shadow);
+        }
+        
+        .section-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 28px;
+            font-weight: 600;
+            color: var(--navy);
+            margin-bottom: 30px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .section-title:after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background-color: var(--red);
+        }
+        
+        .steps {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        
+        .step {
+            flex: 1;
+            padding: 0 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            position: relative;
+        }
+        
+        .step:not(:last-child):after {
+            content: '';
+            position: absolute;
+            top: 15px;
+            right: 0;
+            width: 1px;
+            height: 70%;
+            background-color: var(--gray);
+        }
+        
+        .step-number {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 50px;
+            height: 50px;
+            background-color: var(--red);
+            color: var(--white);
+            border-radius: 50%;
+            margin-bottom: 15px;
+            font-weight: 700;
+            font-size: 20px;
+        }
+        
+        .step-header {
+            font-weight: 600;
+            color: var(--navy);
+            margin-bottom: 8px;
+            font-size: 18px;
+        }
+        
+        .extraction-box {
+            background-color: var(--white);
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+            border-left: 5px solid var(--red);
+            margin-bottom: 20px;
+        }
+        
+        .extraction-box:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .feature-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .feature-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--navy);
+            margin: 0;
+        }
+        
+        .file-input-wrapper {
+            position: relative;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        
+        .file-input {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+            z-index: 2;
+        }
+        
+        .file-input-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--gray-light);
+            border: 2px dashed var(--gray);
+            border-radius: 8px;
+            padding: 20px;
+            color: var(--navy-light);
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        
+        .file-input-button svg {
+            width: 28px;
+            height: 28px;
+            margin-right: 15px;
+            fill: var(--navy-light);
+        }
+        
+        .file-input-wrapper:hover .file-input-button {
+            background-color: var(--gray);
+            border-color: var(--navy-light);
+            color: var(--navy);
+        }
+        
+        .info-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            margin-left: 8px;
+            background-color: var(--navy-lighter);
+            border-radius: 50%;
+            color: var(--white);
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+        
+        .info-icon:hover {
+            background-color: var(--red);
+            transform: scale(1.1);
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            background-color: var(--red-light);
+            color: var(--white);
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        
+        .grid {display: flex; gap: 20px;}
+        .grid-col {flex: 1;}
+        
+        footer {
+            background-color: var(--navy);
+            color: var(--white);
+            padding: 40px 0;
+            border-radius: 10px 10px 0 0;
+            margin-top: 60px;
+        }
+        
+        .footer-credits {
+            font-size: 14px;
+            margin-top: 20px;
+            text-align: center;
+            color: var(--gray);
+        }
+        
+        @media (max-width: 991px) {
+            .hero .flex {flex-direction: column; text-align: center;}
+            .hero-text {margin-bottom: 30px;}
+            .hero-image {width: 300px;}
+            .steps {flex-direction: column;}
+            .step {
+                margin-bottom: 30px;
+                padding-bottom: 30px;
+                border-bottom: 1px solid var(--gray);
+            }
+            .step:not(:last-child):after {display: none;}
+            .grid {flex-direction: column;}
+        }
+        
+        @media (max-width: 767px) {
+            header .flex {flex-direction: column;}
+            nav ul {margin-top: 20px;}
+            nav ul li {margin: 0 10px;}
+            footer .flex {flex-direction: column;}
+            footer .flex div:first-child {margin-bottom: 20px;}
+        }
     </style>
 </head>
 <body>
-    <div class="page-container">
-        <div class="container">
-            <div class="logo-container">
-                <img src="{{ url_for('static', filename='genie.png') }}" alt="SciRep Genie Logo" class="genie-img">
-            </div>
-            <div class="instructions-container">
-                <h2>How to use SciRep Genie</h2>
-                <div class="step"><span class="step-header">Step 1:</span> Export - Your work in the "Scientific Report" format.</div>
-                <div class="step"><span class="step-header">Step 2:</span> Select and upload - One or multiple scientific reports.</div>
-                <div class="step"><span class="step-header">Step 3:</span> Extract - SciRep Genie will filter relevant data into a .csv file.</div>
-                <div class="step"><span class="step-header"></span>Click on <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0056b3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg> to view supported formats.</div>
-            </div>
+    <header>
+        <div class="container flex items-center justify-between">
+            <div class="logo-text">Sci<span>Rep</span> - Cardiac MRI Extraction Tool</div>
+            <nav>
+                <ul>
+                    <li><a href="#">Home</a></li>
+                    <li><a href="#">Support</a></li>
+                </ul>
+            </nav>
         </div>
+    </header>
     
-        <div class="extraction-box">
-            <h3>
-                SAX Function
-                <a href="{{ url_for('show_format', extraction_type='SAX_function') }}" target="_blank" title="View SAX Function format" class="info-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <line x1="12" y1="16" x2="12" y2="12"></line>
-                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                    </svg>
-                </a>
-            </h3>
-            <form method="POST" action="/upload_SAX_function" enctype="multipart/form-data">
-                <input type="file" name="files[]" multiple>
-                <input type="submit" value="Extract SAX Function">
-            </form>
+    <section class="hero">
+        <div class="container flex items-center justify-between">
+            <div class="hero-text">
+                <h1>Unlock Cardiac Imaging Insights in Seconds</h1>
+                <p>SciRep automatically extracts scientific reports into structured, analysis-ready data, eliminating hours of manual compilation and transcription errors.</p>
+                <a href="#features" class="btn">Get Started</a>
+                <a href="#" class="btn btn-outline" style="margin-left: 15px;">Learn More</a>
+            </div>
+            <img src="/static/genie.png" alt="SciRep Genie Illustration" class="hero-image">
         </div>
-
-        <div class="extraction-box">
-            <h5>
-                LAX Function
-                <a href="{{ url_for('show_format', extraction_type='LAX_function') }}" target="_blank" title="View LAX Function format" class="info-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <line x1="12" y1="16" x2="12" y2="12"></line>
-                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                    </svg>
-                </a>
-            </h5>
-            <h4>Added 07/20/2024</h4>
-            <form method="POST" action="/upload_LAX_function" enctype="multipart/form-data">
-                <input type="file" name="files[]" multiple>
-                <input type="submit" value="Extract LAX Function">
-            </form>
-        </div>
-
-        <div class="extraction-box">
-            <h5>
-                Atrial Volume (LA and RA Functions)
-                <a href="{{ url_for('show_format', extraction_type='atrial_volume') }}" target="_blank" title="View Atrial Volume format" class="info-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <line x1="12" y1="16" x2="12" y2="12"></line>
-                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                    </svg>
-                </a>
-            </h5>
-            <h4>Added 07/23/2024</h4>
-            <form method="POST" action="/upload_atrial_volume" enctype="multipart/form-data">
-                <input type="file" name="files[]" multiple>
-                <input type="submit" value="Extract Atrial Volume">
-            </form>
-        </div>
-
-        <div class="extraction-box">
-            <h3>
-                T1/T2 Mapping
-                <a href="{{ url_for('show_format', extraction_type='mapping') }}" target="_blank" title="View T1/T2 Mapping format" class="info-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <line x1="12" y1="16" x2="12" y2="12"></line>
-                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                    </svg>
-                </a>
-            </h3>
-            <form method="POST" action="/upload_mapping" enctype="multipart/form-data">
-                <input type="file" name="files[]" multiple>
-                <input type="submit" value="Extract Mapping">
-            </form>
-        </div>
-        <div class="extraction-box">
-            <div class="aha-segmentation-container">
-                <div class="aha-segmentation-half">
-                    <h5>
-                        T1 AHA Segmentation
-                            <a href="{{ url_for('show_format', extraction_type='t1_aha_segmentation') }}" target="_blank" title="View format T1 AHA Segmentation report" class="info-icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <line x1="12" y1="16" x2="12" y2="12"></line>
-                                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+    </section>
+    
+    <div class="container">
+        <section class="card">
+            <h2 class="section-title">How SciRep Works</h2>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-header">Export</div>
+                    <div>Export your work in the "Scientific Report" format from your cardiac imaging software.</div>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-header">Select and Upload</div>
+                    <div>Choose one or multiple scientific reports for processing.</div>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-header">Extract</div>
+                    <div>SciRep Genie automatically filters and organizes relevant data into a .csv file.</div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="features">
+            <div class="extraction-box">
+                <div class="feature-header">
+                    <h3 class="feature-title">SAX Function</h3>
+                    <a href="{{ url_for('show_format', extraction_type='SAX_function') }}" class="info-icon" title="View SAX Function format">i</a>
+                </div>
+                <form action="/upload_SAX_function" method="POST" enctype="multipart/form-data">
+                    <div class="file-input-wrapper">
+                        <input type="file" name="files[]" class="file-input" multiple>
+                        <div class="file-input-button">
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 15V3M12 3L8 7M12 3L16 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M2 17L2.621 19.485C2.72915 19.9177 2.97882 20.3018 3.33033 20.5763C3.68184 20.8508 4.11501 20.9999 4.561 21H19.439C19.885 20.9999 20.3182 20.8508 20.6697 20.5763C21.0212 20.3018 21.2708 19.9177 21.379 19.485L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
-                        </a>
-                    </h5>
-                    <h4>Added 07/26/2024</h4>
-                    <form method="POST" action="/upload_t1_aha_segmentation" enctype="multipart/form-data">
-                        <input type="file" name="files[]" multiple>
-                        <input type="submit" value="Extract T1 AHA Segmentation">
+                            <span>Select Files</span>
+                        </div>
+                    </div>
+                    <input type="submit" value="Extract SAX Function" class="btn">
+                </form>
+            </div>
+            
+            <div class="extraction-box">
+                <div class="feature-header">
+                    <h3 class="feature-title">LAX Function</h3>
+                    <a href="{{ url_for('show_format', extraction_type='LAX_function') }}" class="info-icon" title="View LAX Function format">i</a>
+                </div>
+                <small>Added 07/20/2024</small>
+                <form action="/upload_LAX_function" method="POST" enctype="multipart/form-data">
+                    <div class="file-input-wrapper">
+                        <input type="file" name="files[]" class="file-input" multiple>
+                        <div class="file-input-button">
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 15V3M12 3L8 7M12 3L16 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M2 17L2.621 19.485C2.72915 19.9177 2.97882 20.3018 3.33033 20.5763C3.68184 20.8508 4.11501 20.9999 4.561 21H19.439C19.885 20.9999 20.3182 20.8508 20.6697 20.5763C21.0212 20.3018 21.2708 19.9177 21.379 19.485L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <span>Select Files</span>
+                        </div>
+                    </div>
+                    <input type="submit" value="Extract LAX Function" class="btn">
+                </form>
+            </div>
+            
+            <div class="extraction-box">
+                <div class="feature-header">
+                    <h3 class="feature-title">Atrial Volume (LA and RA Functions)</h3>
+                    <a href="{{ url_for('show_format', extraction_type='atrial_volume') }}" class="info-icon" title="View Atrial Volume format">i</a>
+                </div>
+                <small>Added 07/23/2024</small>
+                <form action="/upload_atrial_volume" method="POST" enctype="multipart/form-data">
+                    <div class="file-input-wrapper">
+                        <input type="file" name="files[]" class="file-input" multiple>
+                        <div class="file-input-button">
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 15V3M12 3L8 7M12 3L16 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M2 17L2.621 19.485C2.72915 19.9177 2.97882 20.3018 3.33033 20.5763C3.68184 20.8508 4.11501 20.9999 4.561 21H19.439C19.885 20.9999 20.3182 20.8508 20.6697 20.5763C21.0212 20.3018 21.2708 19.9177 21.379 19.485L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <span>Select Files</span>
+                        </div>
+                    </div>
+                    <input type="submit" value="Extract Atrial Volume" class="btn">
+                </form>
+            </div>
+            
+            <div class="extraction-box">
+                <div class="feature-header">
+                    <h3 class="feature-title">T1/T2 Mapping</h3>
+                    <a href="{{ url_for('show_format', extraction_type='mapping') }}" class="info-icon" title="View T1/T2 Mapping format">i</a>
+                </div>
+                <form action="/upload_mapping" method="POST" enctype="multipart/form-data">
+                    <div class="file-input-wrapper">
+                        <input type="file" name="files[]" class="file-input" multiple>
+                        <div class="file-input-button">
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 15V3M12 3L8 7M12 3L16 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M2 17L2.621 19.485C2.72915 19.9177 2.97882 20.3018 3.33033 20.5763C3.68184 20.8508 4.11501 20.9999 4.561 21H19.439C19.885 20.9999 20.3182 20.8508 20.6697 20.5763C21.0212 20.3018 21.2708 19.9177 21.379 19.485L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <span>Select Files</span>
+                        </div>
+                    </div>
+                    <input type="submit" value="Extract Mapping" class="btn">
+                </form>
+            </div>
+            
+            <div class="grid">
+                <div class="grid-col extraction-box">
+                    <div class="feature-header">
+                        <h3 class="feature-title">T1 AHA Segmentation</h3>
+                        <a href="{{ url_for('show_format', extraction_type='t1_aha_segmentation') }}" class="info-icon" title="View T1 AHA Segmentation format">i</a>
+                        <span class="badge">NEW</span>
+                    </div>
+                    <small>Added 07/26/2024</small>
+                    <form action="/upload_t1_aha_segmentation" method="POST" enctype="multipart/form-data">
+                        <div class="file-input-wrapper">
+                            <input type="file" name="files[]" class="file-input" multiple>
+                            <div class="file-input-button">
+                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 15V3M12 3L8 7M12 3L16 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M2 17L2.621 19.485C2.72915 19.9177 2.97882 20.3018 3.33033 20.5763C3.68184 20.8508 4.11501 20.9999 4.561 21H19.439C19.885 20.9999 20.3182 20.8508 20.6697 20.5763C21.0212 20.3018 21.2708 19.9177 21.379 19.485L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                <span>Select Files</span>
+                            </div>
+                        </div>
+                        <input type="submit" value="Extract T1 AHA Segmentation" class="btn">
                     </form>
                 </div>
-                <div class="aha-segmentation-half">
-                    <h5>
-                        T2 AHA Segmentation
-                        <a href="{{ url_for('show_format', extraction_type='t2_aha_segmentation') }}" target="_blank" title="View format T2 AHA Segmentation report" class="info-icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <line x1="12" y1="16" x2="12" y2="12"></line>
-                                <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                            </svg>
-                        </a>
-                    </h5>
-                    <h4>Added 07/26/2024</h4>
-                    <form method="POST" action="/upload_t2_aha_segmentation" enctype="multipart/form-data">
-                        <input type="file" name="files[]" multiple>
-                        <input type="submit" value="Extract T2 AHA Segmentation">
+                <div class="grid-col extraction-box">
+                    <div class="feature-header">
+                        <h3 class="feature-title">T2 AHA Segmentation</h3>
+                        <a href="{{ url_for('show_format', extraction_type='t2_aha_segmentation') }}" class="info-icon" title="View T2 AHA Segmentation format">i</a>
+                        <span class="badge">NEW</span>
+                    </div>
+                    <small>Added 07/26/2024</small>
+                    <form action="/upload_t2_aha_segmentation" method="POST" enctype="multipart/form-data">
+                        <div class="file-input-wrapper">
+                            <input type="file" name="files[]" class="file-input" multiple>
+                            <div class="file-input-button">
+                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 15V3M12 3L8 7M12 3L16 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M2 17L2.621 19.485C2.72915 19.9177 2.97882 20.3018 3.33033 20.5763C3.68184 20.8508 4.11501 20.9999 4.561 21H19.439C19.885 20.9999 20.3182 20.8508 20.6697 20.5763C21.0212 20.3018 21.2708 19.9177 21.379 19.485L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                <span>Select Files</span>
+                            </div>
+                        </div>
+                        <input type="submit" value="Extract T2 AHA Segmentation" class="btn">
                     </form>
                 </div>
             </div>
+        </section>
+    </div>
+    
+    <footer>
+        <div class="container flex items-center justify-between">
+            <div class="logo-text">Sci<span>Rep</span></div>
+            <div>
+                <a href="#" style="color: white; margin-left: 20px; text-decoration: none;">Privacy</a>
+                <a href="#" style="color: white; margin-left: 20px; text-decoration: none;">Terms</a>
+                <a href="#" style="color: white; margin-left: 20px; text-decoration: none;">Contact</a>
+            </div>
         </div>
-        
-        <div class="made-with-love">
-            Made with ❤️ by Kian Soroush + GPT
-        </div>
+        <div class="footer-credits">Made with ❤️ by Kian S. + Claude 3.7</div>
+    </footer>
 </body>
 </html>

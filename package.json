@@ -3,14 +3,18 @@
   "version": "1.0.0",
   "description": "Cardiology Research Tool",
   "main": "index.js",
+  "engines": {
+    "node": ">=14.0.0",
+    "npm": ">=6.0.0"
+  },
   "scripts": {
     "build": "python build_site.py",
     "dev": "netlify dev"
   },
   "dependencies": {
-    "uuid": "^9.0.0"
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
-    "netlify-cli": "^15.0.0"
+    "netlify-cli": "^12.7.2"
   }
 }
