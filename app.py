@@ -137,6 +137,11 @@ def index():
     """Render the main page"""
     return render_template('index.html')
 
+@app.route('/support')
+def support():
+    """Render the support page"""
+    return render_template('support_page.html')
+
 @app.route('/format/<extraction_type>')
 def show_format(extraction_type):
     """Show format examples for extraction types"""

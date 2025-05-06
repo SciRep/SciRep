@@ -28,6 +28,11 @@
             background-color: var(--navy-bg);
             color: var(--navy);
             line-height: 1.6;
+            scroll-behavior: smooth;
+        }
+        
+        html {
+            scroll-behavior: smooth;
         }
         
         .container {
@@ -65,13 +70,29 @@
         
         nav a {
             text-decoration: none;
-            color: var(--navy);
+            color: var(--white);
             font-weight: 500;
             font-size: 16px;
-            transition: color 0.3s ease;
+            transition: all 0.3s ease;
+            background-color: var(--navy);
+            padding: 10px 20px;
+            border-radius: 30px;
+            display: inline-flex;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(16, 42, 67, 0.2);
         }
         
-        nav a:hover {color: var(--red);}
+        nav a:hover {
+            background-color: var(--navy-light);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 10px rgba(16, 42, 67, 0.3);
+        }
+        
+        nav a svg {
+            margin-right: 8px;
+            width: 16px;
+            height: 16px;
+        }
         
         .hero {
             background: linear-gradient(135deg, var(--navy) 0%, var(--navy-lighter) 100%);
@@ -225,7 +246,7 @@
             position: relative;
             overflow: hidden;
             width: 100%;
-            border-left: 5px solid var(--red);
+            border-top: 5px solid var(--red);
             margin-bottom: 20px;
         }
         
@@ -342,6 +363,16 @@
             color: var(--gray);
         }
         
+        .footer-logo {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 20px;
+        }
+        
+        .footer-logo span {
+            color: var(--red);
+        }
+        
         @media (max-width: 991px) {
             .hero .flex {flex-direction: column; text-align: center;}
             .hero-text {margin-bottom: 30px;}
@@ -371,8 +402,16 @@
             <div class="logo-text">Sci<span>Rep</span> - Cardiac MRI Extraction Tool</div>
             <nav>
                 <ul>
-                    <li><a href="#">Home</a></li>
-                    <li><a href="#">Support</a></li>
+                    <li>
+                        <a href="{{ url_for('support') }}">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                            </svg>
+                            Support
+                        </a>
+                    </li>
                 </ul>
             </nav>
         </div>
@@ -382,9 +421,8 @@
         <div class="container flex items-center justify-between">
             <div class="hero-text">
                 <h1>Unlock Cardiac Imaging Insights in Seconds</h1>
-                <p>SciRep automatically extracts scientific reports into structured, analysis-ready data, eliminating hours of manual compilation and transcription errors.</p>
-                <a href="#features" class="btn">Get Started</a>
-                <a href="#" class="btn btn-outline" style="margin-left: 15px;">Learn More</a>
+                <p>SciRep automatically extracts scientific reports into analysis-ready data, eliminating hours of manual compilation and transcription errors.</p>
+                <a href="#first-function" class="btn">Get Started</a>
             </div>
             <img src="/static/genie.png" alt="SciRep Genie Illustration" class="hero-image">
         </div>
@@ -413,7 +451,7 @@
         </section>
         
         <section id="features">
-            <div class="extraction-box">
+            <div id="first-function" class="extraction-box">
                 <div class="feature-header">
                     <h3 class="feature-title">SAX Function</h3>
                     <a href="{{ url_for('show_format', extraction_type='SAX_function') }}" class="info-icon" title="View SAX Function format">i</a>
@@ -544,14 +582,54 @@
     
     <footer>
         <div class="container flex items-center justify-between">
-            <div class="logo-text">Sci<span>Rep</span></div>
+                <div class="footer-logo">Sci<span>Rep</span></div>
             <div>
                 <a href="#" style="color: white; margin-left: 20px; text-decoration: none;">Privacy</a>
                 <a href="#" style="color: white; margin-left: 20px; text-decoration: none;">Terms</a>
-                <a href="#" style="color: white; margin-left: 20px; text-decoration: none;">Contact</a>
+                <a href="{{ url_for('support') }}" style="color: white; margin-left: 20px; text-decoration: none;">Contact</a>
             </div>
         </div>
         <div class="footer-credits">Made with ❤️ by Kian S. + Claude 3.7</div>
     </footer>
+    <script>
+            // Improved smooth scrolling functionality
+            document.addEventListener('DOMContentLoaded', function() {
+                document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                    anchor.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        
+                        const targetId = this.getAttribute('href');
+                        const targetElement = document.querySelector(targetId);
+                        
+                        if (targetElement) {
+                            // Add a small delay to ensure proper scrolling
+                            setTimeout(() => {
+                                window.scrollTo({
+                                    top: targetElement.offsetTop - 80,
+                                    behavior: 'smooth'
+                                });
+                            }, 100);
+                        }
+                    });
+                });
+                
+                // Handle direct navigation from "Get Started" button
+                const startButton = document.querySelector('a[href="#how-scirep-works"]');
+                if (startButton) {
+                    startButton.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const targetElement = document.getElementById('how-scirep-works');
+                        if (targetElement) {
+                            setTimeout(() => {
+                                window.scrollTo({
+                                    top: targetElement.offsetTop - 80,
+                                    behavior: 'smooth'
+                                });
+                            }, 100);
+                        }
+                    });
+                }
+            });
+        </script>
 </body>
 </html>
